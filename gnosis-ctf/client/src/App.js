@@ -50,14 +50,22 @@ class App extends Component {
       rewardsBank = RewardsEngined deployed address
       */
 
-      const sysAdmin = accounts[0];
-      const oracle = accounts[1];
-      const hr = accounts[2];
-      const employee = accounts[3];
+      const sysAdmin = '0x270CF9e3Bb0c35dEC44191f69711F6b35e31D344'; //accounts[0];
+      const oracle = '0xDC09e081F5724AD41eD7C220fcF5757e1586a8B5';  //accounts[1];
+      const hr = '0x70aFC7e8dbB819f9d9BbFfCFe0dB1221Dc023538';  //accounts[2];
+      const employee = '0xE7ceC1646127d323FfBF552e398Efe6E2040D152';  //accounts[3];
       const rewardsBank = deployedNetworkE.address;
+
+      //console.log('starting web...');
 
       await engine.methods.setOracle(oracle).send({ from: sysAdmin });
       await engine.methods.setRewardsBank(rewardsBank).send({ from: sysAdmin });
+      //engine.events.RewardUpdatedEvent({})
+      //  .on('data', async function(evt){console.log('RewardUpdatedEvent triggered:'+evt.returnValues);})
+      //  .on('error', console.error);
+      
+      //console.log('starting events :'+JSON.stringify(engine.events));
+
 
       //var response1 = await reward.methods.balanceOf(accounts[0]).call();
       //var response2 = await reward.methods.balanceOf(rewardsBank).call();
