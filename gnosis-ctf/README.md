@@ -50,8 +50,12 @@ Update dependencies
 Run it locally
 
     yarn start
+  
 
-### Note : Current implementation is partially implemented and tested in both remix and truffle.
+### Note about current implementation
  
-For a demo of the workflow follow url (https://drive.google.com/file/d/1nEn46t0Twu-wy7Ztb9aruUzvZ4D6Ubti/view?usp=sharing)
+1. The code is partially implemented and tested in both remix and truffle. 
+2. The code internally uses the libraries from Gnosis CTF and OpenZeppelin. For ease of development and debugging, the source files have been locally copied in to the repository. However, for production deployment the online sources should be referenced and used.
+3. For ease of deployment and demo, some accounts and address have been statically defined in App.js and migration file(3_deploy_contract_ex.js)
+4. For a demo of the workflow follow url (https://drive.google.com/file/d/1nEn46t0Twu-wy7Ztb9aruUzvZ4D6Ubti/view?usp=sharing) 
 
