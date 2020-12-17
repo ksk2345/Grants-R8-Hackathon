@@ -25,7 +25,12 @@ contract RewardsEngine is ERC1155Receiver {
     address private _oracleAcctId;
     address private _rewardsBankAcctId;
     bytes32 private _parentCollectionId = 0x0000000000000000000000000000000000000000000000000000000000000000;
+    bytes8 private _m2Code = 0x0000000000000002;
+    bytes8 private _m3Code = 0x0000000000000003;
     
+    event RewardUpdatedEvent(address indexed addressOf, uint256 prev, uint256 current);
+    event RewardApprovedEvent(address indexed owner, address indexed spender, uint256 prev, uint256 current);
+
     constructor(
         address rewardToken,
         address conditionalTokens
@@ -48,7 +53,7 @@ contract RewardsEngine is ERC1155Receiver {
     
     function setRewardsBank(address acctId) external
     {
-        _rewardsBankAcctId = acctId;
+        _rewardsBankAcctId = acctId; // address(this) ??
     }
 
     function mintRewardsForBank() external
@@ -62,6 +67,11 @@ contract RewardsEngine is ERC1155Receiver {
         
         // TRANSACTION code
         _rewardTokenMint.mint(_rewardsBankAcctId, gap);
+
+        uint256 current = _rewardToken.balanceOf(_rewardsBankAcctId);
+
+        emit RewardUpdatedEvent(_rewardsBankAcctId, balance, current);
+
     }
     
     //// HR functions
@@ -76,11 +86,16 @@ contract RewardsEngine is ERC1155Receiver {
         //console.log(vacancyCode);
         // assuming vacancyCount as 1
         
+        uint256 prev = _rewardToken.allowance(_rewardsBankAcctId, address(_conditionalTokens));
+
         //require (msg.sender == owner);
         // TRANSACTION code - Approve the reward, for the Vacancy
         _rewardToken.approve(address(_conditionalTokens), rewardAmount);
         //_rewardToken.increaseAllowance(address(_conditionalTokens), rewardAmount);
-        
+
+        uint256 current = _rewardToken.allowance(_rewardsBankAcctId, address(_conditionalTokens));
+
+        emit RewardApprovedEvent(_rewardsBankAcctId, address(_conditionalTokens), prev, current);
     }
     
     function getCandidates(bytes8 vacancyCode) external 
@@ -106,7 +121,7 @@ contract RewardsEngine is ERC1155Receiver {
         
         // questionId = generate unique byte32 based on (vacancyCode and candidateCode)
         bytes32 questionId2;
-        questionId2 = vacancyCode<<24 | candidateCode<<16 | 0x0000000000000000;
+        questionId2 = makeQuestionId(vacancyCode, candidateCode, _m2Code);
         
         // Prepare the condition (transaction)
         // TRANSACTION code
@@ -125,7 +140,7 @@ contract RewardsEngine is ERC1155Receiver {
         
         // questionId = generate unique byte32 based on (vacancyCode and candidateCode)
         bytes32 questionId3;
-        questionId3 = vacancyCode<<24 | candidateCode<<16 | 0x0000000000000001;
+        questionId3 = makeQuestionId(vacancyCode, candidateCode, _m3Code);
         
         // Prepare the condition (transaction)
         // TRANSACTION code
@@ -137,8 +152,6 @@ contract RewardsEngine is ERC1155Receiver {
         // Split the position
         // TRANSACTION code
         _conditionalTokens.splitPosition(_rewardToken, _parentCollectionId, conditionId3, partitions, rewardAmount3);
-        
-        
     }
     
     
@@ -165,7 +178,7 @@ contract RewardsEngine is ERC1155Receiver {
     function redeemRewards(bytes8 vacancyCode, bytes8 candidateCode) external
     {
         bytes32 questionId;
-        questionId = vacancyCode<<24 | candidateCode<<16 | 0x0000000000000001;
+        questionId = makeQuestionId(vacancyCode, candidateCode, _m2Code);
         
         // No, Yes [1,2]
         uint256[] memory indexSets = new uint256[](1);
@@ -179,7 +192,7 @@ contract RewardsEngine is ERC1155Receiver {
     function candidateJoins (bytes8 vacancyCode, bytes8 candidateCode) external
     {
         bytes32 questionId;
-        questionId = vacancyCode<<24 | candidateCode<<16 | 0x0;
+        questionId = makeQuestionId(vacancyCode, candidateCode, _m2Code);
         
         // No, Yes [1,2]
         uint256[] memory payouts = new uint256[](2);
@@ -189,10 +202,13 @@ contract RewardsEngine is ERC1155Receiver {
         _conditionalTokens.reportPayouts(questionId, payouts);
     }
     
-    function candidateCompletes1Year (bytes8 vacancyCode, bytes8 candidateCode) external
-    {
+    function makeQuestionId(bytes8 b1, bytes8 b2, bytes8 id) private pure returns(bytes32) {
+        return bytes32(b1) | (bytes32(b2)>>(8*8)) | (bytes32(id)>>(24*8));
+    }
+
+    function candidateCompletes1Year (bytes8 vacancyCode, bytes8 candidateCode) external {
         bytes32 questionId;
-        questionId = vacancyCode<<24 | candidateCode<<16 | 0x0000000000000001;
+        questionId = makeQuestionId(vacancyCode, candidateCode, _m3Code);
         
         // No, Yes [1,2]
         uint256[] memory payouts = new uint256[](2);
