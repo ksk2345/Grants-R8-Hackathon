@@ -19,7 +19,7 @@ class DAO extends Component {
     (async function(reward, rewardsBank){
       var res = await reward.methods.balanceOf(rewardsBank).call();
       //this.state = {value: res};
-      //alert ("Token balance is (before mint) :" + res);
+      alert ("Token balance is (before mint) :" + res);
       return res;
     })(this.reward, this.rewardsBank);
 
